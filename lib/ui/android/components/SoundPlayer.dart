@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 class SoundPlayer extends StatefulWidget {
-  const SoundPlayer({super.key});
+  final AudioPlayer audioPlayer;
+
+  const SoundPlayer({super.key, required this.audioPlayer});
   @override
   State<SoundPlayer> createState() => _SoundPlayer();
 }
 
 class _SoundPlayer extends State<SoundPlayer> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -19,21 +20,11 @@ class _SoundPlayer extends State<SoundPlayer> {
     var playlist = <AudioSource>[
       AudioSource.uri(
         Uri.parse(
-          "https://lv-sycdn.kuwo.cn/d42b064138c39bc645137030670b59b1/6835c115/resource/30106/trackmedia/M8000009TIka3l8J6p.mp3",
+          "http://music.163.com/song/media/outer/url?id=447925558.mp3",
         ),
-      ),
-      AudioSource.uri(
-        Uri.parse(
-          "https://archive.org/download/igm-v8_202101/IGM%20-%20Vol.%208/15%20Pokemon%20Red%20-%20Cerulean%20City%20%28Game%20Freak%29.mp3",
-        ),
-      ),
-      AudioSource.uri(
-        Uri.parse(
-          "https://scummbar.com/mi2/MI1-CD/01%20-%20Opening%20Themes%20-%20Introduction.mp3",
-        ),
-      ),
+      )
     ];
-    _audioPlayer
+    widget.audioPlayer
         .setAudioSources(
           playlist,
           initialIndex: 0,
@@ -48,7 +39,7 @@ class _SoundPlayer extends State<SoundPlayer> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    widget.audioPlayer.dispose();
     super.dispose();
   }
 
@@ -65,13 +56,13 @@ class _SoundPlayer extends State<SoundPlayer> {
         mainAxisSize: MainAxisSize.min,
         children: [
           StreamBuilder<SequenceState>(
-            stream: _audioPlayer.sequenceStateStream,
+            stream: widget.audioPlayer.sequenceStateStream,
             builder: (_, __) {
               return _previousButton();
             },
           ),
           StreamBuilder<PlayerState>(
-            stream: _audioPlayer.playerStateStream,
+            stream: widget.audioPlayer.playerStateStream,
             builder: (_, snapshot) {
               final playerState = snapshot.data;
               if (playerState == null) {
@@ -82,7 +73,7 @@ class _SoundPlayer extends State<SoundPlayer> {
             },
           ),
           StreamBuilder<SequenceState>(
-            stream: _audioPlayer.sequenceStateStream,
+            stream: widget.audioPlayer.sequenceStateStream,
             builder: (_, __) {
               return _nextButton();
             },
@@ -101,25 +92,25 @@ class _SoundPlayer extends State<SoundPlayer> {
         height: 64.0,
         child: CircularProgressIndicator(),
       );
-    } else if (_audioPlayer.playing != true) {
+    } else if (widget.audioPlayer.playing != true) {
       return IconButton(
         icon: Icon(Icons.play_arrow),
         iconSize: 64.0,
-        onPressed: _audioPlayer.play,
+        onPressed: widget.audioPlayer.play,
       );
     } else if (processingState != ProcessingState.completed) {
       return IconButton(
         icon: Icon(Icons.pause),
         iconSize: 64.0,
-        onPressed: _audioPlayer.pause,
+        onPressed: widget.audioPlayer.pause,
       );
     } else {
       return IconButton(
         icon: Icon(Icons.replay),
         iconSize: 64.0,
-        onPressed: () => _audioPlayer.seek(
+        onPressed: () => widget.audioPlayer.seek(
           Duration.zero,
-          index: _audioPlayer.effectiveIndices.first,
+          index: widget.audioPlayer.effectiveIndices.first,
         ),
       );
     }
@@ -128,14 +119,14 @@ class _SoundPlayer extends State<SoundPlayer> {
   Widget _previousButton() {
     return IconButton(
       icon: Icon(Icons.skip_previous),
-      onPressed: _audioPlayer.hasPrevious ? _audioPlayer.seekToPrevious : null,
+      onPressed: widget.audioPlayer.hasPrevious ? widget.audioPlayer.seekToPrevious : null,
     );
   }
 
   Widget _nextButton() {
     return IconButton(
       icon: Icon(Icons.skip_next),
-      onPressed: _audioPlayer.hasNext ? _audioPlayer.seekToNext : null,
+      onPressed: widget.audioPlayer.hasNext ? widget.audioPlayer.seekToNext : null,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/search_bar.dart' show TopSearchBar;
 import '../components/favorite_item.dart' show FavoriteItem;
 import '../components/SoundPlayer.dart' show SoundPlayer;
+import 'package:just_audio/just_audio.dart' show AudioPlayer;
 
 class Index extends StatelessWidget {
   const Index({super.key});
@@ -31,7 +32,7 @@ class Index extends StatelessWidget {
               const SizedBox(height: 20),
               const FavoriteSection(),
               const SizedBox(height: 10),
-              const SoundPlayer(),
+              SoundPlayer(audioPlayer: AudioPlayer()),
             ],
           ),
         ),
