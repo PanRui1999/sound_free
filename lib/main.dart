@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:sound_free/models/favorites_collection.dart';
+import 'package:sound_free/models/song.dart';
+import 'package:sound_free/models/song_lyrics.dart';
 import 'dart:io' show Platform;
 import 'package:sound_free/ui/android/android_app.dart';
+import 'package:sound_free/models/sound.dart';
+import 'tools/global_data.dart';
 
-void main() {
-  
-
+void main() async {
+  await initHive();
   if (Platform.isAndroid) {
     runApp(const AndroidApp());
   } else if (Platform.isWindows) {
@@ -14,9 +17,16 @@ void main() {
   }
 }
 
-void initHive() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // 初始化 Hive
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDocumentDir.path);
+Future<void> initHive() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(SoundAdapter());
+  Hive.registerAdapter(SongAdapter());
+  Hive.registerAdapter(SoundFormatAdapter());
+  Hive.registerAdapter(SongLyricsAdapter());
+  Hive.registerAdapter(FavoritesCollectionAdapter());
+
+  // preopen box
+  await Hive.openBox<FavoritesCollection>(
+    GlobalData().boxNameOfFavoritesCollection,
+  );
 }

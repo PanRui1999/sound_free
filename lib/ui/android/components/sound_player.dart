@@ -12,17 +12,14 @@ class SoundPlayer extends StatefulWidget {
 }
 
 class _SoundPlayer extends State<SoundPlayer> {
-
   @override
   void initState() {
     super.initState();
     // Set a sequence of audio sources that will be played by the audio player.
     var playlist = <AudioSource>[
       AudioSource.uri(
-        Uri.parse(
-          "http://music.163.com/song/media/outer/url?id=447925558.mp3",
-        ),
-      )
+        Uri.parse("http://music.163.com/song/media/outer/url?id=447925558.mp3"),
+      ),
     ];
     widget.audioPlayer
         .setAudioSources(
@@ -119,14 +116,18 @@ class _SoundPlayer extends State<SoundPlayer> {
   Widget _previousButton() {
     return IconButton(
       icon: Icon(Icons.skip_previous),
-      onPressed: widget.audioPlayer.hasPrevious ? widget.audioPlayer.seekToPrevious : null,
+      onPressed: widget.audioPlayer.hasPrevious
+          ? widget.audioPlayer.seekToPrevious
+          : null,
     );
   }
 
   Widget _nextButton() {
     return IconButton(
       icon: Icon(Icons.skip_next),
-      onPressed: widget.audioPlayer.hasNext ? widget.audioPlayer.seekToNext : null,
+      onPressed: widget.audioPlayer.hasNext
+          ? widget.audioPlayer.seekToNext
+          : null,
     );
   }
 }

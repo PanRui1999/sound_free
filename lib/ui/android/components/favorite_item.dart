@@ -2,14 +2,30 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
-class FavoriteItem extends StatelessWidget {
-  const FavoriteItem({super.key});
+class FavoriteItem extends StatefulWidget {
+  final String name;
+
+  const FavoriteItem({super.key, required this.name});
+
+  @override
+  State<StatefulWidget> createState() => _FavoriteItem();
+}
+
+class _FavoriteItem extends State<FavoriteItem> {
+  late String _name;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _name = widget.name;
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        log("点击事件");
+        log("${_name}：点击事件");
       },
       child: Container(
         margin: const EdgeInsets.all(10),
@@ -29,7 +45,7 @@ class FavoriteItem extends StatelessWidget {
             const SizedBox(width: 16.0),
             Expanded(
               child: Text(
-                "新建收藏夹",
+                _name,
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 22, color: Colors.grey),
               ),
