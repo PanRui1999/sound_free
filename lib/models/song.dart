@@ -10,13 +10,13 @@ class Song extends Sound {
   final String name;
 
   @HiveField(11)
-  late SongLyrics lyrics;
+  SongLyrics? lyrics;
 
   @HiveField(12)
   final String singer;
 
   @HiveField(13)
-  late String imagePath;
+  String? imagePath;
 
   Song({
     required this.name,

@@ -11,4 +11,8 @@ class SongLyrics extends HiveObject {
   final bool isLocal;
 
   SongLyrics({required this.lyricsPath, required this.isLocal});
+
+  SongLyrics copy() {
+    return SongLyrics(lyricsPath: lyricsPath, isLocal: isLocal);
+  }
 }

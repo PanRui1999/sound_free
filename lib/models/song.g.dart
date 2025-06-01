@@ -22,8 +22,8 @@ class SongAdapter extends TypeAdapter<Song> {
       sourcePath: fields[0] as String,
       isLocal: fields[1] as bool,
       format: fields[2] as SoundFormat,
-      imagePath: fields[13] as String,
-    )..lyrics = fields[11] as SongLyrics;
+      imagePath: fields[13] as String?,
+    )..lyrics = fields[11] as SongLyrics?;
   }
 
   @override

@@ -26,7 +26,8 @@ Future<void> initHive() async {
   Hive.registerAdapter(FavoritesCollectionAdapter());
 
   // preopen box
-  await Hive.openBox<FavoritesCollection>(
+  var box = await Hive.openBox<FavoritesCollection>(
     GlobalData().boxNameOfFavoritesCollection,
   );
+  //await box.clear();
 }
