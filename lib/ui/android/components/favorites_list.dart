@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:sound_free/models/favorites_collection.dart';
 import 'package:sound_free/controllers/hive_favorites_controller.dart';
