@@ -44,36 +44,95 @@ class _SoundPlayer extends State<SoundPlayer> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 130,
+      height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
         children: [
-          StreamBuilder<SequenceState>(
-            stream: widget.audioPlayer.sequenceStateStream,
-            builder: (_, __) {
-              return _previousButton();
-            },
+          LinearProgressIndicator(
+            minHeight: 2,
+            value: 0.5,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation(Colors.red),
           ),
-          StreamBuilder<PlayerState>(
-            stream: widget.audioPlayer.playerStateStream,
-            builder: (_, snapshot) {
-              final playerState = snapshot.data;
-              if (playerState == null) {
-                return _playPauseButton(ProcessingState.completed);
-              } else {
-                return _playPauseButton(playerState.processingState);
-              }
-            },
-          ),
-          StreamBuilder<SequenceState>(
-            stream: widget.audioPlayer.sequenceStateStream,
-            builder: (_, __) {
-              return _nextButton();
-            },
+          Expanded(
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsetsGeometry.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                  child: CircleAvatar(
+                    radius: 38,
+                    backgroundImage: AssetImage(
+                      "assets/images/Vinyl_image.png",
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(height: 10),
+                      Expanded(
+                        child: Text(
+                          "测试歌曲名称测试歌曲名称测试歌曲名称测试歌曲名称测试歌曲名称测试歌曲名称测试歌曲名称测试歌曲名称",
+                          maxLines: 1,
+                          overflow: TextOverflow.fade,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          StreamBuilder<SequenceState>(
+                            stream: widget.audioPlayer.sequenceStateStream,
+                            builder: (_, __) {
+                              return _previousButton();
+                            },
+                          ),
+                          StreamBuilder<PlayerState>(
+                            stream: widget.audioPlayer.playerStateStream,
+                            builder: (_, snapshot) {
+                              final playerState = snapshot.data;
+                              if (playerState == null) {
+                                return _playPauseButton(
+                                  ProcessingState.completed,
+                                );
+                              } else {
+                                return _playPauseButton(
+                                  playerState.processingState,
+                                );
+                              }
+                            },
+                          ),
+                          StreamBuilder<SequenceState>(
+                            stream: widget.audioPlayer.sequenceStateStream,
+                            builder: (_, __) {
+                              return _nextButton();
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsetsGeometry.only(left: 30.0),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: Icon(Icons.list),
+                              iconSize: 28.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -81,30 +140,31 @@ class _SoundPlayer extends State<SoundPlayer> {
   }
 
   Widget _playPauseButton(ProcessingState processingState) {
+    const iconSize = 50.0;
     if (processingState == ProcessingState.loading ||
         processingState == ProcessingState.buffering) {
       return Container(
         margin: EdgeInsets.all(8.0),
-        width: 64.0,
-        height: 64.0,
+        width: iconSize,
+        height: iconSize,
         child: CircularProgressIndicator(),
       );
     } else if (widget.audioPlayer.playing != true) {
       return IconButton(
         icon: Icon(Icons.play_arrow),
-        iconSize: 64.0,
+        iconSize: iconSize,
         onPressed: widget.audioPlayer.play,
       );
     } else if (processingState != ProcessingState.completed) {
       return IconButton(
         icon: Icon(Icons.pause),
-        iconSize: 64.0,
+        iconSize: iconSize,
         onPressed: widget.audioPlayer.pause,
       );
     } else {
       return IconButton(
         icon: Icon(Icons.replay),
-        iconSize: 64.0,
+        iconSize: iconSize,
         onPressed: () => widget.audioPlayer.seek(
           Duration.zero,
           index: widget.audioPlayer.effectiveIndices.first,
@@ -115,6 +175,7 @@ class _SoundPlayer extends State<SoundPlayer> {
 
   Widget _previousButton() {
     return IconButton(
+      iconSize: 36,
       icon: Icon(Icons.skip_previous),
       onPressed: widget.audioPlayer.hasPrevious
           ? widget.audioPlayer.seekToPrevious
@@ -124,6 +185,7 @@ class _SoundPlayer extends State<SoundPlayer> {
 
   Widget _nextButton() {
     return IconButton(
+      iconSize: 36,
       icon: Icon(Icons.skip_next),
       onPressed: widget.audioPlayer.hasNext
           ? widget.audioPlayer.seekToNext
