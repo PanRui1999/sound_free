@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:sound_free/models/song.dart';
+import 'package:sound_free/models/sound.dart';
 
 class SoundPlayer extends StatefulWidget {
   final AudioPlayer audioPlayer;
@@ -12,6 +14,8 @@ class SoundPlayer extends StatefulWidget {
 }
 
 class _SoundPlayer extends State<SoundPlayer> {
+  final List<Song> _playList = [];
+
   @override
   void initState() {
     super.initState();
@@ -21,6 +25,60 @@ class _SoundPlayer extends State<SoundPlayer> {
         Uri.parse("http://music.163.com/song/media/outer/url?id=447925558.mp3"),
       ),
     ];
+    _playList.add(
+      Song(
+        name: "test1",
+        singer: "周",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
+    _playList.add(
+      Song(
+        name: "test2",
+        singer: "刘",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
+    _playList.add(
+      Song(
+        name: "test3",
+        singer: "张",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
+    _playList.add(
+      Song(
+        name: "test1",
+        singer: "周",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
+    _playList.add(
+      Song(
+        name: "test2",
+        singer: "刘",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
+    _playList.add(
+      Song(
+        name: "test3",
+        singer: "张",
+        sourcePath: "pathtest1",
+        isLocal: false,
+        format: SoundFormat.mp3,
+      ),
+    );
     widget.audioPlayer
         .setAudioSources(
           playlist,
@@ -120,11 +178,7 @@ class _SoundPlayer extends State<SoundPlayer> {
                           ),
                           Padding(
                             padding: EdgeInsetsGeometry.only(left: 30.0),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.list),
-                              iconSize: 28.0,
-                            ),
+                            child: _playListIconButton(),
                           ),
                         ],
                       ),
@@ -190,6 +244,151 @@ class _SoundPlayer extends State<SoundPlayer> {
       onPressed: widget.audioPlayer.hasNext
           ? widget.audioPlayer.seekToNext
           : null,
+    );
+  }
+
+  Widget _playListIconButton() {
+    return IconButton(
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setModelState) {
+              return Container(
+                height: 300,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                ),
+                child: Column(
+                  children: [
+                    // 顶部控制栏
+                    Container(
+                      height: 50,
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('播放列表'),
+                          IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 播放列表
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _playList.length,
+                        itemBuilder: (context, index) {
+                          return _buildPlaylistItem(
+                            context,
+                            index,
+                            setModelState,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+      icon: Icon(Icons.list),
+      iconSize: 28.0,
+    );
+  }
+
+  Widget _buildPlaylistItem(context, index, setModelState) {
+    final metadata = _playList[index];
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.music_note,
+            size: 24,
+            color: index == 0 ? Colors.red : Colors.grey[600],
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metadata.name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: index == 0 ? Colors.red : Colors.black,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                Text(
+                  metadata.singer,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: index == 0 ? Colors.red : Colors.grey[600],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          _buildActionButtons(index, setModelState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(index, setModelState) {
+    const iconSize = 24.0;
+    if (index == 0) {
+      // in playing
+      return SizedBox();
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          iconSize: iconSize,
+          icon: Icon(Icons.play_arrow, color: Colors.blue),
+          onPressed: () => widget.audioPlayer.seek(Duration.zero, index: index),
+        ),
+        IconButton(
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          iconSize: iconSize,
+          icon: Icon(
+            Icons.upgrade,
+            color: index == 1 ? Colors.white : Colors.blue,
+          ),
+          onPressed: () {
+            if (index == 1) return;
+            var temp = _playList[index];
+            _playList.removeAt(index);
+            _playList.insert(1, temp);
+            setModelState(() {});
+          },
+        ),
+        IconButton(
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          iconSize: iconSize,
+          icon: Icon(Icons.delete, color: Colors.grey[600]),
+          onPressed: () {
+            _playList.removeAt(index);
+            setModelState(() {});
+          },
+        ),
+      ],
     );
   }
 }
