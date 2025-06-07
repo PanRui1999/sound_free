@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sound_free/ui/android/screens/settings_screen.dart';
 import '../components/search_bar.dart' show TopSearchBar;
-import '../components/sound_player/sound_player.dart' show SoundPlayer;
+import '../components/sound_player.dart' show SoundPlayer;
 import 'package:sound_free/ui/android/components/favorites_list.dart';
 
 class Index extends StatelessWidget {
@@ -15,7 +16,14 @@ class Index extends StatelessWidget {
         title: Column(
           children: [
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
               icon: Icon(Icons.settings),
               color: Colors.white,
             ),

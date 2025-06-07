@@ -15,7 +15,7 @@ class SoundPlayer extends StatefulWidget {
 
 class _SoundPlayer extends State<SoundPlayer> {
   final List<Song> _playList = [];
-  final double _progress = 0.2;
+  double _progress = 0.2;
 
   @override
   void initState() {
