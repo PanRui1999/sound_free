@@ -1,100 +1,31 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:sound_free/models/song.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:sound_free/models/sound.dart';
 
 class SoundPlayer extends StatefulWidget {
-  final AudioPlayer audioPlayer;
+  final List<Sound> _soundList = [];
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  final double _componentHeight = 120;
 
-  const SoundPlayer({super.key, required this.audioPlayer});
+  SoundPlayer({super.key});
   @override
   State<SoundPlayer> createState() => _SoundPlayer();
 }
 
 class _SoundPlayer extends State<SoundPlayer> {
   final List<Song> _playList = [];
+  final double _progress = 0.2;
 
   @override
   void initState() {
     super.initState();
     // Set a sequence of audio sources that will be played by the audio player.
-    var playlist = <AudioSource>[
-      AudioSource.uri(
-        Uri.parse("http://music.163.com/song/media/outer/url?id=447925558.mp3"),
-      ),
-    ];
-    _playList.add(
-      Song(
-        name: "test1",
-        singer: "周",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    _playList.add(
-      Song(
-        name: "test2",
-        singer: "刘",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    _playList.add(
-      Song(
-        name: "test3",
-        singer: "张",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    _playList.add(
-      Song(
-        name: "test1",
-        singer: "周",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    _playList.add(
-      Song(
-        name: "test2",
-        singer: "刘",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    _playList.add(
-      Song(
-        name: "test3",
-        singer: "张",
-        sourcePath: "pathtest1",
-        isLocal: false,
-        format: SoundFormat.mp3,
-      ),
-    );
-    widget.audioPlayer
-        .setAudioSources(
-          playlist,
-          initialIndex: 0,
-          initialPosition: Duration.zero,
-        )
-        .catchError((error) {
-          // catch load errors: 404, invalid url ...
-          log("配置音源时发生错误 $error", level: 99);
-          return null;
-        });
   }
 
   @override
   void dispose() {
-    widget.audioPlayer.dispose();
+    widget._audioPlayer.dispose();
     super.dispose();
   }
 
@@ -102,7 +33,7 @@ class _SoundPlayer extends State<SoundPlayer> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 100,
+      height: widget._componentHeight,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -112,12 +43,7 @@ class _SoundPlayer extends State<SoundPlayer> {
       ),
       child: Column(
         children: [
-          LinearProgressIndicator(
-            minHeight: 2,
-            value: 0.5,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation(Colors.red),
-          ),
+          _buildProgressIndicator(),
           Expanded(
             child: Row(
               children: [
@@ -150,28 +76,19 @@ class _SoundPlayer extends State<SoundPlayer> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           StreamBuilder<SequenceState>(
-                            stream: widget.audioPlayer.sequenceStateStream,
+                            stream: widget._audioPlayer.sequenceStateStream,
                             builder: (_, __) {
                               return _previousButton();
                             },
                           ),
                           StreamBuilder<PlayerState>(
-                            stream: widget.audioPlayer.playerStateStream,
+                            stream: widget._audioPlayer.playerStateStream,
                             builder: (_, snapshot) {
-                              final playerState = snapshot.data;
-                              if (playerState == null) {
-                                return _playPauseButton(
-                                  ProcessingState.completed,
-                                );
-                              } else {
-                                return _playPauseButton(
-                                  playerState.processingState,
-                                );
-                              }
+                              return _playPauseButton(snapshot.data);
                             },
                           ),
                           StreamBuilder<SequenceState>(
-                            stream: widget.audioPlayer.sequenceStateStream,
+                            stream: widget._audioPlayer.sequenceStateStream,
                             builder: (_, __) {
                               return _nextButton();
                             },
@@ -193,36 +110,108 @@ class _SoundPlayer extends State<SoundPlayer> {
     );
   }
 
-  Widget _playPauseButton(ProcessingState processingState) {
+  Widget _buildProgressIndicator() {
+    const double thumbRadius = 5.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double trackWidth = constraints.maxWidth;
+        return Container(
+          height: thumbRadius * 3, // 增加容器高度
+          alignment: Alignment.center, // 垂直居中
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque, // 扩大点击区域
+            onHorizontalDragUpdate: (details) {
+              setState(() {
+                _progress = (details.localPosition.dx / trackWidth).clamp(
+                  0.0,
+                  1.0,
+                );
+              });
+            },
+            onHorizontalDragEnd: (_) {
+              _onProgressChanged(_progress);
+            },
+            child: Stack(
+              clipBehavior: Clip.none, // 允许子组件溢出
+              children: [
+                // 进度条前景
+                Positioned(
+                  left: 0,
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 10),
+                    width: trackWidth * _progress,
+                    height: 2,
+                    color: Colors.red,
+                  ),
+                ),
+                // 滑块指示器
+                Positioned(
+                  left: trackWidth * _progress - thumbRadius,
+                  top: -thumbRadius,
+                  child: Container(
+                    width: thumbRadius * 2,
+                    height: thumbRadius * 2,
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _playPauseButton(PlayerState? playerState) {
     const iconSize = 50.0;
-    if (processingState == ProcessingState.loading ||
-        processingState == ProcessingState.buffering) {
-      return Container(
-        margin: EdgeInsets.all(8.0),
-        width: iconSize,
-        height: iconSize,
-        child: CircularProgressIndicator(),
-      );
-    } else if (widget.audioPlayer.playing != true) {
+    if (playerState == null ||
+        playerState.processingState == ProcessingState.idle) {
       return IconButton(
         icon: Icon(Icons.play_arrow),
         iconSize: iconSize,
-        onPressed: widget.audioPlayer.play,
+        onPressed: () {},
       );
-    } else if (processingState != ProcessingState.completed) {
+    }
+    if (playerState.playing) {
+      if (playerState.processingState == ProcessingState.completed ||
+          playerState.processingState == ProcessingState.loading ||
+          playerState.processingState == ProcessingState.buffering) {
+        return IconButton(
+          icon: Icon(Icons.pause),
+          iconSize: iconSize,
+          onPressed: widget._audioPlayer.pause,
+        );
+      }
       return IconButton(
-        icon: Icon(Icons.pause),
+        icon: Icon(Icons.play_arrow),
         iconSize: iconSize,
-        onPressed: widget.audioPlayer.pause,
+        onPressed: () {},
       );
     } else {
+      if (playerState.processingState == ProcessingState.loading ||
+          playerState.processingState == ProcessingState.buffering) {
+        return Container(
+          margin: EdgeInsets.all(8.0),
+          width: iconSize,
+          height: iconSize,
+          child: CircularProgressIndicator(),
+        );
+      }
       return IconButton(
-        icon: Icon(Icons.replay),
+        icon: Icon(Icons.play_arrow),
         iconSize: iconSize,
-        onPressed: () => widget.audioPlayer.seek(
-          Duration.zero,
-          index: widget.audioPlayer.effectiveIndices.first,
-        ),
+        onPressed: widget._audioPlayer.play,
       );
     }
   }
@@ -231,9 +220,7 @@ class _SoundPlayer extends State<SoundPlayer> {
     return IconButton(
       iconSize: 36,
       icon: Icon(Icons.skip_previous),
-      onPressed: widget.audioPlayer.hasPrevious
-          ? widget.audioPlayer.seekToPrevious
-          : null,
+      onPressed: widget._audioPlayer.seekToPrevious,
     );
   }
 
@@ -241,9 +228,7 @@ class _SoundPlayer extends State<SoundPlayer> {
     return IconButton(
       iconSize: 36,
       icon: Icon(Icons.skip_next),
-      onPressed: widget.audioPlayer.hasNext
-          ? widget.audioPlayer.seekToNext
-          : null,
+      onPressed: widget._audioPlayer.seekToNext,
     );
   }
 
@@ -360,7 +345,7 @@ class _SoundPlayer extends State<SoundPlayer> {
           constraints: BoxConstraints(),
           iconSize: iconSize,
           icon: Icon(Icons.play_arrow, color: Colors.blue),
-          onPressed: () => widget.audioPlayer.seek(Duration.zero, index: index),
+          onPressed: () {},
         ),
         IconButton(
           padding: EdgeInsets.zero,
@@ -390,5 +375,11 @@ class _SoundPlayer extends State<SoundPlayer> {
         ),
       ],
     );
+  }
+
+  void _onProgressChanged(double progress) {
+    // 这里实现实际进度改变逻辑，例如：
+    // widget._audioPlayer.seek(Duration(seconds: (totalDuration * progress).toInt()));
+    print('进度更新到: ${(progress * 100).toStringAsFixed(1)}%');
   }
 }
