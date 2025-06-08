@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:sound_free/models/app_settings.dart';
 import 'package:sound_free/models/favorites_collection.dart';
 import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/song_lyrics.dart';
@@ -24,10 +25,14 @@ Future<void> initHive() async {
   Hive.registerAdapter(SoundFormatAdapter());
   Hive.registerAdapter(SongLyricsAdapter());
   Hive.registerAdapter(FavoritesCollectionAdapter());
+  Hive.registerAdapter(AppSettingsAdapter());
 
   // preopen box
   var box = await Hive.openBox<FavoritesCollection>(
     GlobalData().boxNameOfFavoritesCollection,
+  );
+  await Hive.openBox<AppSettings>(
+    GlobalData().boxNameOfAppSettings,
   );
   //await box.clear();
 }

@@ -1,9 +1,28 @@
 // 新建 settings_screen.dart 文件
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sound_free/controllers/app_settings_controller.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreen();
+}
+
+class _SettingsScreen extends State<SettingsScreen> {
+  List? scanningPaths;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    scanningPaths = AppSettingsController().allOfScaningPaths();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +33,7 @@ class SettingsScreen extends StatelessWidget {
         padding: EdgeInsetsGeometry.all(6),
         child: ListView(
           children: [
-            _buildScanDirectory(),
+            _buildScanDirectory(context),
             SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,7 +70,24 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScanDirectory() {
+  Widget _buildScanDirectory(context) {
+    List<Widget> scanningItems = [];
+    for (var path in scanningPaths!) {
+      scanningItems.add(
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                path,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+            IconButton(onPressed: () {}, icon: Icon(Icons.remove)),
+          ],
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -61,50 +97,33 @@ class SettingsScreen extends StatelessWidget {
               child: const Text('本地音乐目录', style: TextStyle(fontSize: 20.0)),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final status = await Permission.storage.request();
+                if (!status.isGranted) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text('需要存储权限'),
+                      content: Text('请授予存储权限以选择音乐目录'),
+                    ),
+                  );
+                  return;
+                }
+                String? selectedDirectory = await FilePicker.platform
+                    .getDirectoryPath();
+                if (selectedDirectory != null &&
+                    selectedDirectory.isNotEmpty &&
+                    scanningPaths!.contains(selectedDirectory) == false) {
+                  scanningPaths!.add(selectedDirectory);
+                  AppSettingsController().addScaningPath(selectedDirectory);
+                  setState(() {});
+                }
+              },
               icon: Icon(Icons.add),
-              iconSize: 24,
-              alignment: Alignment.topLeft, // 按钮自身顶部对齐
             ),
           ],
         ),
-        Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "text1",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
-                IconButton(onPressed: () {}, icon: Icon(Icons.remove)),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "text1",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
-                IconButton(onPressed: () {}, icon: Icon(Icons.remove)),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "text1",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
-                IconButton(onPressed: () {}, icon: Icon(Icons.remove)),
-              ],
-            ),
-          ],
-        ),
+        Column(children: scanningItems),
       ],
     );
   }

@@ -1,9 +1,12 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:label="sound_free"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
 >
         <activity
             android:name=".MainActivity"
@@ -47,4 +50,13 @@
     
     <!-- user permission definitions -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 基础存储权限（API < 29） -->
+    <uses-permission 
+        android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission 
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- 所有文件访问权限（API >= 30） -->
+    <uses-permission 
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+        tools:ignore="ScopedStorage" />
 </manifest>
