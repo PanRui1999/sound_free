@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:sound_free/models/song.dart';
 import 'package:just_audio/just_audio.dart';
@@ -5,10 +7,10 @@ import 'package:sound_free/models/sound.dart';
 
 class SoundPlayer extends StatefulWidget {
   final List<Sound> _soundList = [];
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer audioPlayer;
   final double _componentHeight = 120;
 
-  SoundPlayer({super.key});
+  SoundPlayer({super.key, required this.audioPlayer});
   @override
   State<SoundPlayer> createState() => _SoundPlayer();
 }
@@ -21,12 +23,6 @@ class _SoundPlayer extends State<SoundPlayer> {
   void initState() {
     super.initState();
     // Set a sequence of audio sources that will be played by the audio player.
-  }
-
-  @override
-  void dispose() {
-    widget._audioPlayer.dispose();
-    super.dispose();
   }
 
   @override
@@ -76,19 +72,19 @@ class _SoundPlayer extends State<SoundPlayer> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           StreamBuilder<SequenceState>(
-                            stream: widget._audioPlayer.sequenceStateStream,
+                            stream: widget.audioPlayer.sequenceStateStream,
                             builder: (_, __) {
                               return _previousButton();
                             },
                           ),
                           StreamBuilder<PlayerState>(
-                            stream: widget._audioPlayer.playerStateStream,
+                            stream: widget.audioPlayer.playerStateStream,
                             builder: (_, snapshot) {
                               return _playPauseButton(snapshot.data);
                             },
                           ),
                           StreamBuilder<SequenceState>(
-                            stream: widget._audioPlayer.sequenceStateStream,
+                            stream: widget.audioPlayer.sequenceStateStream,
                             builder: (_, __) {
                               return _nextButton();
                             },
@@ -190,7 +186,7 @@ class _SoundPlayer extends State<SoundPlayer> {
         return IconButton(
           icon: Icon(Icons.pause),
           iconSize: iconSize,
-          onPressed: widget._audioPlayer.pause,
+          onPressed: widget.audioPlayer.pause,
         );
       }
       return IconButton(
@@ -211,7 +207,7 @@ class _SoundPlayer extends State<SoundPlayer> {
       return IconButton(
         icon: Icon(Icons.play_arrow),
         iconSize: iconSize,
-        onPressed: widget._audioPlayer.play,
+        onPressed: widget.audioPlayer.play,
       );
     }
   }
@@ -220,7 +216,7 @@ class _SoundPlayer extends State<SoundPlayer> {
     return IconButton(
       iconSize: 36,
       icon: Icon(Icons.skip_previous),
-      onPressed: widget._audioPlayer.seekToPrevious,
+      onPressed: widget.audioPlayer.seekToPrevious,
     );
   }
 
@@ -228,7 +224,7 @@ class _SoundPlayer extends State<SoundPlayer> {
     return IconButton(
       iconSize: 36,
       icon: Icon(Icons.skip_next),
-      onPressed: widget._audioPlayer.seekToNext,
+      onPressed: widget.audioPlayer.seekToNext,
     );
   }
 
@@ -379,7 +375,7 @@ class _SoundPlayer extends State<SoundPlayer> {
 
   void _onProgressChanged(double progress) {
     // 这里实现实际进度改变逻辑，例如：
-    // widget._audioPlayer.seek(Duration(seconds: (totalDuration * progress).toInt()));
-    print('进度更新到: ${(progress * 100).toStringAsFixed(1)}%');
+    // widget.audioPlayer.seek(Duration(seconds: (totalDuration * progress).toInt()));
+    log('进度更新到: ${(progress * 100).toStringAsFixed(1)}%');
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sound_free/tools/global_data.dart';
 import 'package:sound_free/ui/android/screens/settings_screen.dart';
 import '../components/search_bar.dart' show TopSearchBar;
 import '../components/sound_player.dart' show SoundPlayer;
@@ -19,9 +20,7 @@ class Index extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => SettingsScreen()),
                 );
               },
               icon: Icon(Icons.settings),
@@ -39,7 +38,7 @@ class Index extends StatelessWidget {
               const SizedBox(height: 20),
               const FavoriteSection(),
               const SizedBox(height: 10),
-              SoundPlayer(),
+              SoundPlayer(audioPlayer: GlobalData().defualtAudioPlayer),
             ],
           ),
         ),

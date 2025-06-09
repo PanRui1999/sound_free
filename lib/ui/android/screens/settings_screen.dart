@@ -1,6 +1,3 @@
-// 新建 settings_screen.dart 文件
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,20 +5,22 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final _appSettingsController = AppSettingsController();
+
+  SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreen();
 }
 
 class _SettingsScreen extends State<SettingsScreen> {
-  List? scanningPaths;
+  List? _scanningPaths;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    scanningPaths = AppSettingsController().allOfScaningPaths();
+    _scanningPaths = widget._appSettingsController.allOfScaningPaths();
   }
 
   @override
@@ -72,7 +71,7 @@ class _SettingsScreen extends State<SettingsScreen> {
 
   Widget _buildScanDirectory(context) {
     List<Widget> scanningItems = [];
-    for (var path in scanningPaths!) {
+    for (var path in _scanningPaths!) {
       scanningItems.add(
         Row(
           children: [
@@ -82,7 +81,15 @@ class _SettingsScreen extends State<SettingsScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ),
-            IconButton(onPressed: () {}, icon: Icon(Icons.remove)),
+            IconButton(
+              onPressed: () {
+                widget._appSettingsController.deleteScaningPath(path);
+                setState(() {
+                  _scanningPaths?.removeWhere((p)=> p == path);
+                });
+              },
+              icon: Icon(Icons.remove),
+            ),
           ],
         ),
       );
@@ -113,10 +120,13 @@ class _SettingsScreen extends State<SettingsScreen> {
                     .getDirectoryPath();
                 if (selectedDirectory != null &&
                     selectedDirectory.isNotEmpty &&
-                    scanningPaths!.contains(selectedDirectory) == false) {
-                  scanningPaths!.add(selectedDirectory);
-                  AppSettingsController().addScaningPath(selectedDirectory);
-                  setState(() {});
+                    _scanningPaths!.contains(selectedDirectory) == false) {
+                  widget._appSettingsController.addScaningPath(
+                    selectedDirectory,
+                  );
+                  setState(() {
+                    _scanningPaths!.add(selectedDirectory);
+                  });
                 }
               },
               icon: Icon(Icons.add),
