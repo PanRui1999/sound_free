@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class TopSearchBar extends StatefulWidget {
-  final Function(String)? onSearch; // 搜索回调
+  final Function(String, TextEditingController)? onSearch;
+  final String? text;
 
-  const TopSearchBar({super.key, this.onSearch});
+  const TopSearchBar({super.key, this.onSearch, this.text});
 
   @override
   State<TopSearchBar> createState() => _TopSearchBarState();
@@ -12,6 +13,12 @@ class TopSearchBar extends StatefulWidget {
 class _TopSearchBarState extends State<TopSearchBar> {
   // 添加文本控制器来管理输入内容
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    _textController.text = widget.text ?? '';
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -25,10 +32,8 @@ class _TopSearchBarState extends State<TopSearchBar> {
     final searchText = _textController.text;
     // 调用搜索回调
     if (widget.onSearch != null) {
-      widget.onSearch!(searchText);
+      widget.onSearch!(searchText, _textController);
     }
-    // 清空输入框
-    _textController.clear();
   }
 
   @override

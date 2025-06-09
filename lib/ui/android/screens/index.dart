@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sound_free/tools/global_data.dart';
+import 'package:sound_free/ui/android/screens/searching_screen.dart';
 import 'package:sound_free/ui/android/screens/settings_screen.dart';
 import '../components/search_bar.dart' show TopSearchBar;
 import '../components/sound_player.dart' show SoundPlayer;
@@ -34,7 +35,20 @@ class Index extends StatelessWidget {
           padding: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
           child: Column(
             children: [
-              const TopSearchBar(),
+              TopSearchBar(
+                onSearch: (text, textEditingController) {
+                  if (text.isEmpty) return;
+                  textEditingController.clear();
+                  FocusScope.of(context).unfocus();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchingScreen(),
+                      settings: RouteSettings(arguments: text),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 20),
               const FavoriteSection(),
               const SizedBox(height: 10),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:sound_free/models/app_settings.dart';
 import 'package:sound_free/models/favorites_collection.dart';
+import 'package:sound_free/models/plugin.dart';
 import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/song_lyrics.dart';
 import 'dart:io' show Platform;
@@ -11,6 +12,7 @@ import 'tools/global_data.dart';
 
 void main() async {
   await initHive();
+  initPlugins();
   if (Platform.isAndroid) {
     runApp(const AndroidApp());
   } else if (Platform.isWindows) {
@@ -31,8 +33,19 @@ Future<void> initHive() async {
   var box = await Hive.openBox<FavoritesCollection>(
     GlobalData().boxNameOfFavoritesCollection,
   );
-  await Hive.openBox<AppSettings>(
-    GlobalData().boxNameOfAppSettings,
-  );
+  await Hive.openBox<AppSettings>(GlobalData().boxNameOfAppSettings);
   //await box.clear();
+}
+
+void initPlugins() {
+  List<Plugin> plugins = [
+    Plugin(name: "test1", canBeToProvideSoundSource: true),
+    Plugin(name: "test2", canBeToProvideSoundSource: true),
+    Plugin(name: "test3", canBeToProvideSoundSource: true),
+    Plugin(name: "test4", canBeToProvideSoundSource: true),
+    Plugin(name: "test5", canBeToProvideSoundSource: false),
+    Plugin(name: "test6", canBeToProvideSoundSource: true),
+    Plugin(name: "test7", canBeToProvideSoundSource: true),
+  ];
+  GlobalData().runningPlugins.addAll(plugins);
 }
