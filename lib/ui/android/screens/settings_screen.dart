@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
+import 'package:sound_free/tools/file_tools.dart';
 
 class SettingsScreen extends StatefulWidget {
   final _appSettingsController = AppSettingsController();
@@ -85,7 +86,7 @@ class _SettingsScreen extends State<SettingsScreen> {
               onPressed: () {
                 widget._appSettingsController.deleteScaningPath(path);
                 setState(() {
-                  _scanningPaths?.removeWhere((p)=> p == path);
+                  _scanningPaths?.removeWhere((p) => p == path);
                 });
               },
               icon: Icon(Icons.remove),
@@ -116,17 +117,21 @@ class _SettingsScreen extends State<SettingsScreen> {
                   );
                   return;
                 }
-                String? selectedDirectory = await FilePicker.platform
-                    .getDirectoryPath();
-                if (selectedDirectory != null &&
-                    selectedDirectory.isNotEmpty &&
-                    _scanningPaths!.contains(selectedDirectory) == false) {
-                  widget._appSettingsController.addScaningPath(
-                    selectedDirectory,
-                  );
-                  setState(() {
-                    _scanningPaths!.add(selectedDirectory);
-                  });
+                // get permission
+                var selectedDirectory =
+                    await FileTools.requestDirectoryAccess();
+                if (selectedDirectory != null) {
+                  if (selectedDirectory['path'] != null &&
+                      selectedDirectory['path'].isNotEmpty &&
+                      _scanningPaths!.contains(selectedDirectory['path']) ==
+                          false) {
+                    widget._appSettingsController.addScaningPath(
+                      selectedDirectory['path'],
+                    );
+                    setState(() {
+                      _scanningPaths!.add(selectedDirectory['path']);
+                    });
+                  }
                 }
               },
               icon: Icon(Icons.add),

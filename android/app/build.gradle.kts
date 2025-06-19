@@ -50,3 +50,7 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("androidx.documentfile:documentfile:1.1.0")
+}
