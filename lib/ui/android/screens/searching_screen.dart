@@ -242,10 +242,10 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
     }
     for (var path in _canScanPathInLocal) {
       // 1. 首先请求目录访问权限
-      final directoryUri = await FileTools.requestDirectoryAccess();
+      final directoryUri = await FileTools.requestDirectoryAccess(directoryPath: path);
       // 2. 如果成功获取到目录URI，则扫描文件
-      if (directoryUri != null) {
-        final files = [];
+      if (directoryUri!["path"].toString().isNotEmpty) {
+        final files = await FileTools.scanFiles(directoryUri["uri"], format);
         // 处理扫描结果
         if (files != null) {
           // 文件列表获取成功，可以进行处理
@@ -257,7 +257,7 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
           }
         }
       }
-
+      /**
       for (var item in FileTools.scanFiles(path, format)) {
         donetIndex = item.path.lastIndexOf('.');
         switch (item.path.substring(donetIndex).toLowerCase()) {
@@ -299,6 +299,7 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
             break;
         }
       }
+      */
     }
     return sounds;
   }

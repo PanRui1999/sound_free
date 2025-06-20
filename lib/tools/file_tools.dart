@@ -7,7 +7,7 @@ class FileTools {
     'com.example.saf_file_scanner',
   );
 
-  static List<File> scanFiles(String path, List<String> extensions) {
+  static List<File> scanFilesss(String path, List<String> extensions) {
     final dir = Directory(path);
     final files = <File>[];
     if (!dir.existsSync()) return [];
@@ -18,11 +18,6 @@ class FileTools {
         files.add(entity);
       }
     }
-    File test = File(
-      p.join(dir.path, "/storage/emulated/0/Music/358000282.aac"),
-    );
-    print("直接访问结果: ${test.existsSync()}");
-
     return files;
   }
 
@@ -50,17 +45,22 @@ class FileTools {
   }
 
   // 扫描指定目录下的文件
-  static Future<List<Map<String, dynamic>>?> scanFilestest(
+  static Future<List<Map<String, dynamic>>?> scanFiles(
     String directoryUri,
+    List<String> extensions,
   ) async {
     try {
-      final result = await _channel.invokeMethod('scanFiles', {
+      final dynamic result = await _channel.invokeMethod('scanFiles', {
         'directoryUri': directoryUri,
       });
-      if (result is List) {
-        return List<Map<String, dynamic>>.from(result);
+      if (result == null) {
+        return null;
       }
-      return [];
+      final List<Map<String, dynamic>> convertedResult = result
+          .cast<Map<dynamic, dynamic>>()
+          .map<Map<String, dynamic>>((map) => Map<String, dynamic>.from(map))
+          .toList();
+      return convertedResult;
     } on PlatformException catch (e) {
       print("扫描文件失败: ${e.message}");
       return null;
