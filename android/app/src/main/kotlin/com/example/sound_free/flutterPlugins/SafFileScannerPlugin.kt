@@ -29,12 +29,14 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
 
             "scanFiles" -> {
                 val directoryUri = call.argument<String>("directoryUri")
-                directoryUri?.let { scanFiles(it, result) } ?: result.error(
-                    "NULL_URI",
-                    "目录URI为空",
-                    null
-                )
+                val extensions = call.argument<List<String>>("extensions")
+                if (directoryUri != null && extensions != null) {
+                    scanFiles(directoryUri, extensions, result)
+                } else {
+                    result.success(null)
+                }
             }
+
             else -> {
                 result.notImplemented()
             }
@@ -169,31 +171,42 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
         }
     }
 
-    private fun scanFiles(directoryUriString: String, result: MethodChannel.Result) {
+    private fun scanFiles(
+        directoryUriString: String,
+        extensions: List<String>,
+        result: MethodChannel.Result
+    ) {
         try {
             val filesList = ArrayList<Map<String, Any?>>()
             val directoryUri = directoryUriString.toUri()
             val directory = DocumentFile.fromTreeUri(activity, directoryUri)
             Log.d(this::class.simpleName, "scanFiles: 将参数目录 $directoryUriString 转为Uri")
             if (directory == null || !directory.exists() || !directory.isDirectory) {
-                Log.d(this::class.simpleName, "scanFiles: 参数目录 $directoryUriString 不是一个有效的路径或URI")
+                Log.d(
+                    this::class.simpleName,
+                    "scanFiles: 参数目录 $directoryUriString 不是一个有效的路径或URI"
+                )
                 result.success(filesList)
                 return
             }
             for (file in directory.listFiles()) {
+                val extension = file.name?.substringAfterLast('.', "")?.lowercase();
                 val fileInfo = HashMap<String, Any?>()
+                if (file.isDirectory) continue
+                if (!extensions.any { ext ->
+                        extension == ext.removePrefix(".").lowercase()
+                    }) continue
                 fileInfo["name"] = file.name
                 fileInfo["uri"] = file.uri.toString()
-                fileInfo["isDirectory"] = file.isDirectory
-                fileInfo["isFile"] = file.isFile
-                fileInfo["size"] = file.length()
-                fileInfo["lastModified"] = file.lastModified()
-                fileInfo["type"] = file.type
+                fileInfo["suffix"] = extension
                 filesList.add(fileInfo)
             }
             result.success(filesList)
         } catch (e: Exception) {
-            Log.d(this::class.simpleName, "scanFiles: 扫描路径 $directoryUriString 时出错，错误信息为${e.message}")
+            Log.d(
+                this::class.simpleName,
+                "scanFiles: 扫描路径 $directoryUriString 时出错，错误信息为${e.message}"
+            )
             result.success(ArrayList<Map<String, Any?>>())
         }
     }

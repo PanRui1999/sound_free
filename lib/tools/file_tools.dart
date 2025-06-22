@@ -38,32 +38,31 @@ class FileTools {
         return result.cast<String, dynamic>();
       }
       return null;
-    } on PlatformException catch (e) {
-      print("获取目录权限失败: ${e.message}");
+    } catch (e) {
       return null;
     }
   }
 
   // 扫描指定目录下的文件
-  static Future<List<Map<String, dynamic>>?> scanFiles(
+  static Future<List<Map<String, dynamic>>> scanFiles(
     String directoryUri,
     List<String> extensions,
   ) async {
     try {
       final dynamic result = await _channel.invokeMethod('scanFiles', {
         'directoryUri': directoryUri,
+        'extensions': extensions
       });
       if (result == null) {
-        return null;
+        return [];
       }
       final List<Map<String, dynamic>> convertedResult = result
           .cast<Map<dynamic, dynamic>>()
           .map<Map<String, dynamic>>((map) => Map<String, dynamic>.from(map))
           .toList();
       return convertedResult;
-    } on PlatformException catch (e) {
-      print("扫描文件失败: ${e.message}");
-      return null;
+    }  catch (e) {
+      return [];
     }
   }
 }

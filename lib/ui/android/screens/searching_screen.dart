@@ -203,13 +203,13 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
     setState(() {
       _searchingContents.clear();
       _searchingContents.addAll(searchingResult);
+      _isSearching = false;
     });
   }
 
   Future<List<Sound>> _scanLocalSourceFiles() async {
     List<Sound> sounds = [];
     List<String> format = ['.mp3', '.wav', '.aac', '.flac'];
-    var donetIndex = 0;
     final status = await Permission.storage.status;
 
     if (!status.isGranted) {
@@ -242,64 +242,53 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
     }
     for (var path in _canScanPathInLocal) {
       // 1. 首先请求目录访问权限
-      final directoryUri = await FileTools.requestDirectoryAccess(directoryPath: path);
+      final directoryUri = await FileTools.requestDirectoryAccess(
+        directoryPath: path,
+      );
       // 2. 如果成功获取到目录URI，则扫描文件
       if (directoryUri!["path"].toString().isNotEmpty) {
         final files = await FileTools.scanFiles(directoryUri["uri"], format);
-        // 处理扫描结果
-        if (files != null) {
-          // 文件列表获取成功，可以进行处理
-          for (var file in files) {
-            print('文件名: ${file['name']}');
-            print('是否为目录: ${file['isDirectory']}');
-            print('URI: ${file['uri']}');
-            // 其他属性...
+        for (var item in files) {
+          switch (item["suffix"].toString().toLowerCase()) {
+            case 'mp3':
+              sounds.add(
+                Sound(
+                  sourcePath: item["name"],
+                  isLocal: true,
+                  format: SoundFormat.mp3,
+                ),
+              );
+              break;
+            case 'wav':
+              sounds.add(
+                Sound(
+                  sourcePath: item["name"],
+                  isLocal: true,
+                  format: SoundFormat.wav,
+                ),
+              );
+              break;
+            case 'aac':
+              sounds.add(
+                Sound(
+                  sourcePath: item["name"],
+                  isLocal: true,
+                  format: SoundFormat.aac,
+                ),
+              );
+              break;
+            case 'flac':
+              sounds.add(
+                Sound(
+                  sourcePath: item["name"],
+                  isLocal: true,
+                  format: SoundFormat.flac,
+                ),
+              );
+              break;
           }
         }
       }
-      /**
-      for (var item in FileTools.scanFiles(path, format)) {
-        donetIndex = item.path.lastIndexOf('.');
-        switch (item.path.substring(donetIndex).toLowerCase()) {
-          case '.mp3':
-            sounds.add(
-              Sound(
-                sourcePath: item.path,
-                isLocal: true,
-                format: SoundFormat.mp3,
-              ),
-            );
-            break;
-          case '.wav':
-            sounds.add(
-              Sound(
-                sourcePath: item.path,
-                isLocal: true,
-                format: SoundFormat.wav,
-              ),
-            );
-            break;
-          case '.aac':
-            sounds.add(
-              Sound(
-                sourcePath: item.path,
-                isLocal: true,
-                format: SoundFormat.aac,
-              ),
-            );
-            break;
-          case '.flac':
-            sounds.add(
-              Sound(
-                sourcePath: item.path,
-                isLocal: true,
-                format: SoundFormat.flac,
-              ),
-            );
-            break;
-        }
-      }
-      */
     }
     return sounds;
   }
