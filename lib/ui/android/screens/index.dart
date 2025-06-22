@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sound_free/tools/global_data.dart';
+import 'package:sound_free/ui/android/components/favorites_list.dart';
 import 'package:sound_free/ui/android/screens/searching_screen.dart';
 import 'package:sound_free/ui/android/screens/settings_screen.dart';
+
 import '../components/search_bar.dart' show TopSearchBar;
 import '../components/sound_player.dart' show SoundPlayer;
-import 'package:sound_free/ui/android/components/favorites_list.dart';
 
 class Index extends StatelessWidget {
   const Index({super.key});
@@ -39,7 +40,7 @@ class Index extends StatelessWidget {
                 onSearch: (text, textEditingController) {
                   if (text.isEmpty) return;
                   textEditingController.clear();
-                  FocusScope.of(context).unfocus();
+                  FocusScope.of(context).requestFocus(FocusNode());
                   Navigator.push(
                     context,
                     MaterialPageRoute(
