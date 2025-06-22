@@ -1,14 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 import 'package:sound_free/models/plugin.dart';
+import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/sound.dart';
 import 'package:sound_free/tools/file_tools.dart';
 import 'package:sound_free/tools/global_data.dart';
 import 'package:sound_free/ui/android/components/search_bar.dart';
 import 'package:sound_free/ui/android/components/sound_player.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SearchingScreen extends StatefulWidget {
   const SearchingScreen({super.key});
@@ -25,17 +24,25 @@ class _SearchingScreen extends State<SearchingScreen> {
 
   @override
   void initState() {
+    super.initState();
     _pluginsState = GlobalData().runningPlugins.map((p) => p.stateMap).toList();
-    _pluginsState.add({
+    _pluginsState.insert(0,{
       "plugin": Plugin(name: "local-memory", canBeToProvideSoundSource: true),
       "isSelected": true,
     });
-    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    _query = ModalRoute.of(context)?.settings.arguments as String;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -59,18 +66,13 @@ class _SearchingScreen extends State<SearchingScreen> {
             SearchingResultSection(
               key: _searchingResultSectionStateKey,
               plugins: _pluginsState,
+              firstSearchingText: _query,
             ),
             SoundPlayer(audioPlayer: GlobalData().defualtAudioPlayer),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void didChangeDependencies() {
-    _query = ModalRoute.of(context)?.settings.arguments as String;
-    super.didChangeDependencies();
   }
 
   Widget _buildWidgetOfSoundSources() {
@@ -139,8 +141,13 @@ class _SearchingScreen extends State<SearchingScreen> {
 
 class SearchingResultSection extends StatefulWidget {
   final List<Map<String, dynamic>> plugins;
+  final String firstSearchingText;
 
-  const SearchingResultSection({super.key, required this.plugins});
+  const SearchingResultSection({
+    super.key,
+    required this.plugins,
+    required this.firstSearchingText,
+  });
 
   @override
   State<StatefulWidget> createState() => _SearchingResultSectionState();
@@ -148,9 +155,18 @@ class SearchingResultSection extends StatefulWidget {
 
 class _SearchingResultSectionState extends State<SearchingResultSection> {
   bool _isSearching = true;
-  List<Sound> _searchingContents = [];
+  final List<Sound> _searchingContents = [];
   final List<String> _canScanPathInLocal = AppSettingsController()
       .allOfScaningPaths();
+
+  _SearchingResultSectionState();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    onSearching(widget.firstSearchingText);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +176,7 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
       child: ListView.builder(
         itemCount: itemCount,
         itemBuilder: (context, index) {
+          var source;
           if (_isSearching) {
             return Center(
               child: CircularProgressIndicator(
@@ -168,7 +185,10 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
               ),
             );
           } else {
-            return ListTile(title: Text(_searchingContents[index].sourcePath));
+            source = _searchingContents[index];
+            if (source is Song) {
+              return ListTile(title: Text(source.name));
+            }
           }
         },
       ),
@@ -249,44 +269,25 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
       if (directoryUri!["path"].toString().isNotEmpty) {
         final files = await FileTools.scanFiles(directoryUri["uri"], format);
         for (var item in files) {
+          Song s = Song(
+            name: item["name"],
+            singer: "",
+            sourcePath: item["path"],
+            isLocal: true,
+            format: SoundFormat.mp3,
+          );
           switch (item["suffix"].toString().toLowerCase()) {
-            case 'mp3':
-              sounds.add(
-                Sound(
-                  sourcePath: item["name"],
-                  isLocal: true,
-                  format: SoundFormat.mp3,
-                ),
-              );
-              break;
             case 'wav':
-              sounds.add(
-                Sound(
-                  sourcePath: item["name"],
-                  isLocal: true,
-                  format: SoundFormat.wav,
-                ),
-              );
+              s.format = SoundFormat.wav;
               break;
             case 'aac':
-              sounds.add(
-                Sound(
-                  sourcePath: item["name"],
-                  isLocal: true,
-                  format: SoundFormat.aac,
-                ),
-              );
+              s.format = SoundFormat.aac;
               break;
             case 'flac':
-              sounds.add(
-                Sound(
-                  sourcePath: item["name"],
-                  isLocal: true,
-                  format: SoundFormat.flac,
-                ),
-              );
+              s.format = SoundFormat.flac;
               break;
           }
+          sounds.add(s);
         }
       }
     }

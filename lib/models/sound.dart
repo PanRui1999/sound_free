@@ -11,7 +11,7 @@ class Sound extends HiveObject {
   final bool isLocal; // 是否本地文件
 
   @HiveField(2)
-  final SoundFormat format; // 音源格式
+  SoundFormat format; // 音源格式
 
   Sound({
     required this.sourcePath,

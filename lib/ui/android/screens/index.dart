@@ -13,6 +13,7 @@ class Index extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromARGB(255, 36, 36, 36),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 36, 36, 36),

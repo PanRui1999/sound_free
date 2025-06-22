@@ -196,8 +196,9 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
                 if (!extensions.any { ext ->
                         extension == ext.removePrefix(".").lowercase()
                     }) continue
-                fileInfo["name"] = file.name
+                fileInfo["name"] = file.name?.substringBeforeLast(".")
                 fileInfo["uri"] = file.uri.toString()
+                fileInfo["path"] = getPathFromUri(file.uri);
                 fileInfo["suffix"] = extension
                 filesList.add(fileInfo)
             }
