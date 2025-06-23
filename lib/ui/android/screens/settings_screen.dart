@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 import 'package:sound_free/tools/file_tools.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   final _appSettingsController = AppSettingsController();
@@ -33,7 +32,9 @@ class _SettingsScreen extends State<SettingsScreen> {
         padding: EdgeInsetsGeometry.all(6),
         child: ListView(
           children: [
-            _buildScanDirectory(context),
+            _buildScanDirectoryItem(context),
+            SizedBox(height: 15),
+            _buildPluginsManagerItem(),
             SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,7 +71,29 @@ class _SettingsScreen extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildScanDirectory(context) {
+  Widget _buildPluginsManagerItem() {
+    Column w = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Text("插件管理", style: TextStyle(fontSize: 20.0)),
+            Spacer(),
+            IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.add)
+            ),
+          ],
+        ),
+      ],
+    );
+    // searching installed plugins
+
+    return w;
+  }
+
+  Widget _buildScanDirectoryItem(context) {
     List<Widget> scanningItems = [];
     for (var path in _scanningPaths!) {
       scanningItems.add(
