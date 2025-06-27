@@ -5,6 +5,7 @@ import 'package:sound_free/models/favorites_collection.dart';
 import 'package:sound_free/models/plugin.dart';
 import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/song_lyrics.dart';
+import 'package:sound_free/tools/lua_engine.dart';
 import 'dart:io' show Platform;
 import 'package:sound_free/ui/android/android_app.dart';
 import 'package:sound_free/models/sound.dart';
@@ -12,7 +13,7 @@ import 'tools/global_data.dart';
 
 void main() async {
   await initHive();
-  initPlugins();
+  await LuaEngineN.init();
   if (Platform.isAndroid) {
     runApp(const AndroidApp());
   } else if (Platform.isWindows) {
@@ -37,15 +38,3 @@ Future<void> initHive() async {
   //await box.clear();
 }
 
-void initPlugins() {
-  List<Plugin> plugins = [
-    Plugin(name: "test1", canBeToProvideSoundSource: true),
-    Plugin(name: "test2", canBeToProvideSoundSource: true),
-    Plugin(name: "test3", canBeToProvideSoundSource: true),
-    Plugin(name: "test4", canBeToProvideSoundSource: true),
-    Plugin(name: "test5", canBeToProvideSoundSource: false),
-    Plugin(name: "test6", canBeToProvideSoundSource: true),
-    Plugin(name: "test7", canBeToProvideSoundSource: true),
-  ];
-  GlobalData().runningPlugins.addAll(plugins);
-}

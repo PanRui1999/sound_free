@@ -19,15 +19,14 @@ class SearchingScreen extends StatefulWidget {
 class _SearchingScreen extends State<SearchingScreen> {
   String _query = "";
   List<Map<String, dynamic>> _pluginsState = [];
-  final GlobalKey<_SearchingResultSectionState>
-  _searchingResultSectionStateKey = GlobalKey();
+  final GlobalKey<_SearchingResultSectionState> _searchingResultSectionStateKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _pluginsState = GlobalData().runningPlugins.map((p) => p.stateMap).toList();
-    _pluginsState.insert(0,{
-      "plugin": Plugin(name: "local-memory", canBeToProvideSoundSource: true),
+    _pluginsState.insert(0, {
+      "plugin": Plugin(name: "local-memory", canBeToProvideSoundSource: true, path: "local"),
       "isSelected": true,
     });
   }
@@ -53,9 +52,7 @@ class _SearchingScreen extends State<SearchingScreen> {
                   TopSearchBar(
                     text: _query,
                     onSearch: (text, _) {
-                      _searchingResultSectionStateKey.currentState?.onSearching(
-                        text,
-                      );
+                      _searchingResultSectionStateKey.currentState?.onSearching(text);
                     },
                   ),
                   SizedBox(height: 10),
@@ -63,11 +60,7 @@ class _SearchingScreen extends State<SearchingScreen> {
                 ],
               ),
             ),
-            SearchingResultSection(
-              key: _searchingResultSectionStateKey,
-              plugins: _pluginsState,
-              firstSearchingText: _query,
-            ),
+            SearchingResultSection(key: _searchingResultSectionStateKey, plugins: _pluginsState, firstSearchingText: _query),
             SoundPlayer(audioPlayer: GlobalData().defualtAudioPlayer),
           ],
         ),
@@ -93,9 +86,7 @@ class _SearchingScreen extends State<SearchingScreen> {
                   return;
                 }
                 if (_searchingResultSectionStateKey.currentState != null &&
-                    _searchingResultSectionStateKey
-                        .currentState!
-                        ._isSearching) {
+                    _searchingResultSectionStateKey.currentState!._isSearching) {
                   return;
                 }
                 setState(() {
@@ -143,11 +134,7 @@ class SearchingResultSection extends StatefulWidget {
   final List<Map<String, dynamic>> plugins;
   final String firstSearchingText;
 
-  const SearchingResultSection({
-    super.key,
-    required this.plugins,
-    required this.firstSearchingText,
-  });
+  const SearchingResultSection({super.key, required this.plugins, required this.firstSearchingText});
 
   @override
   State<StatefulWidget> createState() => _SearchingResultSectionState();
@@ -156,8 +143,7 @@ class SearchingResultSection extends StatefulWidget {
 class _SearchingResultSectionState extends State<SearchingResultSection> {
   bool _isSearching = true;
   final List<Sound> _searchingContents = [];
-  final List<String> _canScanPathInLocal = AppSettingsController()
-      .allOfScaningPaths();
+  final List<String> _canScanPathInLocal = AppSettingsController().allOfScaningPaths();
 
   _SearchingResultSectionState();
 
@@ -176,20 +162,17 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
       child: ListView.builder(
         itemCount: itemCount,
         itemBuilder: (context, index) {
-          var source;
           if (_isSearching) {
             return Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                strokeWidth: 3,
-              ),
+              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.red), strokeWidth: 3),
             );
           } else {
-            source = _searchingContents[index];
+            var source = _searchingContents[index];
             if (source is Song) {
               return ListTile(title: Text(source.name));
             }
           }
+          return SizedBox.shrink();
         },
       ),
     );
@@ -206,8 +189,7 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
     // async searching
     for (var plugin in widget.plugins) {
       if (plugin['plugin'].canBeToProvideSoundSource) {
-        if (plugin['plugin'].name == "local-memory" &&
-            plugin['isSelected'] == true) {
+        if (plugin['plugin'].name == "local-memory" && plugin['isSelected'] == true) {
           // scan local file
           for (var localsound in await _scanLocalSourceFiles()) {
             searchingResult.add(localsound);
@@ -242,10 +224,7 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
               title: const Text('需要存储权限'),
               content: const Text('扫描本地音频文件需要存储权限'),
               actions: [
-                TextButton(
-                  child: const Text('取消'),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
+                TextButton(child: const Text('取消'), onPressed: () => Navigator.pop(ctx)),
                 TextButton(
                   child: const Text('去设置'),
                   onPressed: () {
@@ -262,20 +241,12 @@ class _SearchingResultSectionState extends State<SearchingResultSection> {
     }
     for (var path in _canScanPathInLocal) {
       // 1. 首先请求目录访问权限
-      final directoryUri = await FileTools.requestDirectoryAccess(
-        directoryPath: path,
-      );
+      final directoryUri = await FileTools.requestDirectoryAccess(directoryPath: path);
       // 2. 如果成功获取到目录URI，则扫描文件
       if (directoryUri!["path"].toString().isNotEmpty) {
         final files = await FileTools.scanFiles(directoryUri["uri"], format);
         for (var item in files) {
-          Song s = Song(
-            name: item["name"],
-            singer: "",
-            sourcePath: item["path"],
-            isLocal: true,
-            format: SoundFormat.mp3,
-          );
+          Song s = Song(name: item["name"], singer: "", sourcePath: item["path"], isLocal: true, format: SoundFormat.mp3);
           switch (item["suffix"].toString().toLowerCase()) {
             case 'wav':
               s.format = SoundFormat.wav;

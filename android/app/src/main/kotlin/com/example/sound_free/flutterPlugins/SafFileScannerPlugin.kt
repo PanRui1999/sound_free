@@ -3,6 +3,7 @@ package com.example.sound_free.flutterPlugins
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.engine.FlutterEngine
@@ -11,8 +12,9 @@ import io.flutter.plugin.common.MethodChannel
 import androidx.core.net.toUri
 
 class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.MethodCallHandler {
-    private val mChannel = "com.example.saf_file_scanner"
+    private val mChannel = "com.sound_free.saf_file_directory_access"
     private val mRequestCodeOpenDirectory = 1
+    private val mFileSelectorRequestCode = 2
     private var pendingResult: MethodChannel.Result? = null
 
     fun registerWith(flutterEngine: FlutterEngine) {
@@ -37,6 +39,11 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
                 }
             }
 
+            "selectFile" -> {
+                pendingResult = result
+                selectFile()
+            }
+
             else -> {
                 result.notImplemented()
             }
@@ -45,32 +52,50 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
 
     fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode != Activity.RESULT_OK) return
-
-        if (requestCode == mRequestCodeOpenDirectory) {
-            data?.data?.let { treeUri ->
-                val resultMap = HashMap<String, Any?>()
-                resultMap["uri"] = treeUri.toString()
-                resultMap["path"] = getPathFromUri(treeUri)
-                activity.contentResolver.takePersistableUriPermission(
-                    treeUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                activity.contentResolver.takePersistableUriPermission(
-                    treeUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                )
-                pendingResult?.success(resultMap)
+        when (requestCode) {
+            mRequestCodeOpenDirectory -> {
+                data?.data?.let { treeUri ->
+                    activity.contentResolver.takePersistableUriPermission(
+                        treeUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    activity.contentResolver.takePersistableUriPermission(
+                        treeUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    pendingResult?.success(buildMap {
+                        put("uri", treeUri.toString())
+                        put("path", getPathFromUri(treeUri))
+                    })
+                }
                 pendingResult = null
             }
-        } else if (pendingResult != null) {
-            pendingResult?.error("CANCELLED", "用户取消了目录选择", null)
-            pendingResult = null
+
+            mFileSelectorRequestCode -> {
+                data?.data?.let { treeUri ->
+                    pendingResult?.success(buildMap {
+                        put("uri", treeUri.toString())
+                        put("path", getPathFromUri(treeUri))
+                    })
+                }
+                pendingResult = null
+            }
         }
+    }
+
+    private fun selectFile() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            // 设置文件类型为所有文件
+            type = "*/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        activity.startActivityForResult(intent, mFileSelectorRequestCode)
     }
 
     private fun requestDirectoryAccess(directoryPath: String? = null) {
         val resultMap = HashMap<String, Any?>()
-        var ok = false;
+        var ok = false
         Log.d(
             this::class.simpleName,
             "requestDirectoryAccess: 请求访问目录为 ${directoryPath ?: "空目录，请求打开访问器"}"
@@ -145,12 +170,11 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
     private fun getPathFromUri(uri: Uri): String? {
         try {
             val uriString = uri.toString()
+            Log.d(this::class.simpleName, "getPathFromUri: 开始对 $uriString 进行路径转换")
             // 同时处理编码和非编码的情况
             if (uriString.startsWith("content://com.android.externalstorage.documents/tree/primary:") ||
                 uriString.startsWith("content://com.android.externalstorage.documents/tree/primary%3A")
             ) {
-
-                // 统一处理路径部分
                 val path = uriString
                     .replace("content://com.android.externalstorage.documents/tree/primary:", "")
                     .replace("content://com.android.externalstorage.documents/tree/primary%3A", "")
@@ -160,10 +184,26 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
                 if (path.isEmpty()) {
                     return "/storage/emulated/0"
                 }
+                Log.d(this::class.simpleName, "getPathFromUri: $uriString 进行路径转换为 ${"/storage/emulated/0/$path"}")
                 return "/storage/emulated/0/$path"
             }
 
-            // 可以添加其他存储位置的处理逻辑
+            // 对于文件类
+            if (uriString.startsWith("content://com.android.externalstorage.documents/document/primary:") ||
+                uriString.startsWith("content://com.android.externalstorage.documents/document/primary%3A")
+            ) {
+                val path = uriString
+                    .replace("content://com.android.externalstorage.documents/document/primary:", "")
+                    .replace("content://com.android.externalstorage.documents/document/primary%3A", "")
+                    .replace("%3A", ":")
+                    .replace("%2F", "/")
+
+                if (path.isEmpty()) {
+                    return "/storage/emulated/0"
+                }
+                Log.d(this::class.simpleName, "getPathFromUri: $uriString 进行路径转换为 ${"/storage/emulated/0/$path"}")
+                return "/storage/emulated/0/$path"
+            }
 
             return null
         } catch (e: Exception) {
@@ -190,17 +230,17 @@ class SafFileScannerPlugin(private val activity: Activity) : MethodChannel.Metho
                 return
             }
             for (file in directory.listFiles()) {
-                val extension = file.name?.substringAfterLast('.', "")?.lowercase();
-                val fileInfo = HashMap<String, Any?>()
+                val extension = file.name?.substringAfterLast('.', "")?.lowercase()
                 if (file.isDirectory) continue
                 if (!extensions.any { ext ->
                         extension == ext.removePrefix(".").lowercase()
                     }) continue
-                fileInfo["name"] = file.name?.substringBeforeLast(".")
-                fileInfo["uri"] = file.uri.toString()
-                fileInfo["path"] = getPathFromUri(file.uri);
-                fileInfo["suffix"] = extension
-                filesList.add(fileInfo)
+                filesList.add(buildMap {
+                    put("name", file.name?.substringBeforeLast("."))
+                    put("uri", file.uri.toString())
+                    put("path", getPathFromUri(file.uri))
+                    put("suffix", extension)
+                })
             }
             result.success(filesList)
         } catch (e: Exception) {

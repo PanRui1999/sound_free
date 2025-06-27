@@ -1,6 +1,13 @@
 class Plugin {
   final String name;
-  final bool canBeToProvideSoundSource;
+  final String path;
+  bool canBeToProvideSoundSource;
+  String scriptContent;
 
-  Plugin({required this.name, required this.canBeToProvideSoundSource});
+  Plugin({
+    required this.name,
+    required this.path,
+    this.canBeToProvideSoundSource = false,
+    this.scriptContent = ""
+  });
 }

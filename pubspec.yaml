@@ -43,6 +43,7 @@ dependencies:
   permission_handler: ^12.0.0+1
   path: ^1.9.1
   lua_dardo: ^0.0.5
+  archive: ^4.0.7
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,8 @@
+import 'dart:developer';
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 import 'package:sound_free/tools/file_tools.dart';
@@ -81,8 +85,39 @@ class _SettingsScreen extends State<SettingsScreen> {
             Text("插件管理", style: TextStyle(fontSize: 20.0)),
             Spacer(),
             IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.add)
+              onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                // permission check
+                final permission = await Permission.manageExternalStorage
+                    .request();
+                if (!permission.isGranted) return;
+                // open selector
+                String? filePath = await FileTools.selectorPlugin();
+                if (filePath == null) return;
+                if (filePath.isEmpty) return;
+                bool b = await FileTools.saveToDocumentsDirectory(
+                  File(filePath),
+                  FileTools.pluginsDirectory,
+                  filePath.substring(filePath.lastIndexOf("/") + 1),
+                );
+                if(!b) {
+                  // add plugin error
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('插件装载出错，请检查插件后再试'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }else{
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('插件装载完成'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+              icon: Icon(Icons.add),
             ),
           ],
         ),
