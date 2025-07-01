@@ -1,5 +1,4 @@
 import 'package:just_audio/just_audio.dart';
-import 'package:sound_free/models/plugin.dart';
 
 class GlobalData {
   static final GlobalData _instance = GlobalData._internal();
