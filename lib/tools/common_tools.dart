@@ -11,15 +11,7 @@ class CommonTools {
     // 设置变体位（RFC4122）
     bytes[8] = (bytes[8] & 0x3F) | 0x80;
 
-    // 转换为十六进制字符串并添加连字符
-    final List<String> hexDigits = bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).toList();
-
-    return [
-      hexDigits.sublist(0, 4).join(''),
-      hexDigits.sublist(4, 6).join(''),
-      hexDigits.sublist(6, 8).join(''),
-      hexDigits.sublist(8, 10).join(''),
-      hexDigits.sublist(10, 16).join(''),
-    ].join('-');
+    // 转换为十六进制字符串并直接拼接
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
   }
 }
