@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sound_free/models/plugin.dart';
 import 'package:sound_free/tools/common_tools.dart';
 import 'package:archive/archive.dart';
-import 'package:sound_free/tools/global_data.dart';
+import 'package:sound_free/tools/lua_engine.dart';
 
 class FileTools {
   static const String pluginsDirectory = "config/plugins";
@@ -72,7 +72,6 @@ class FileTools {
   }
 
   static Future<bool> saveToDocumentsDirectory(File f, String path, String fileName) async {
-    List<Plugin> presentPlugins = GlobalData().runningPlugins;
     final appDir = await getExternalStorageDirectory();
     if (appDir == null) return false;
 
@@ -109,11 +108,11 @@ class FileTools {
       if (versionContentJson['version'] == null) return false;
       if (versionContentJson['canBeToProvideSoundSource'] == null) return false;
 
-      for (int i = 0; i < presentPlugins.length; i++) {
-        Plugin plugin = presentPlugins[i];
+      for (int i = 0; i < LuaEngineN.instance.length; i++) {
+        Plugin plugin = LuaEngineN.instance[i].plugin;
         if (plugin.name == versionContentJson["name"]) {
           // uninstall this plugin
-          presentPlugins.removeAt(i);
+          LuaEngineN.instance.removeAt(i);
           // delete local plugin
           Directory dir = Directory(plugin.path);
           if (dir.existsSync()) {
@@ -142,16 +141,16 @@ class FileTools {
       newPlugin.scriptContent = utf8.decode(indexFile.content);
 
       File temp1 = File('${baseDirectory.path}/index.lua');
-      if(!temp1.existsSync()) temp1.createSync();
+      if (!temp1.existsSync()) temp1.createSync();
       temp1.writeAsBytesSync(indexContent);
 
       // create and write 'version.json'
       File temp2 = File('${baseDirectory.path}/version.json');
-      if(!temp2.existsSync()) temp2.createSync();
+      if (!temp2.existsSync()) temp2.createSync();
       temp2.writeAsStringSync(versionContentString);
 
       // install plugin
-      presentPlugins.add(newPlugin);
+      LuaEngineN('${newPlugin.name}-${baseDirectory.path}}', newPlugin);
       return true;
     } catch (e) {
       // delete base directory if there happening error
@@ -165,7 +164,7 @@ class FileTools {
     final appDir = await getExternalStorageDirectory();
     if (appDir == null) return list;
     final directory = Directory('${appDir.path}/$pluginsDirectory');
-    if(!directory.existsSync()) directory.createSync(recursive: true);
+    if (!directory.existsSync()) directory.createSync(recursive: true);
     var entities = directory.listSync(followLinks: false);
     try {
       for (var entity in entities) {
@@ -190,5 +189,17 @@ class FileTools {
       return [];
     }
     return list;
+  }
+
+  static bool deletePluginFile(Plugin plugin) {
+    Directory baseDirectory = Directory(plugin.path);
+    try {
+      if (!baseDirectory.existsSync()) return true;
+      baseDirectory.deleteSync(recursive: true);
+      return true;
+    } catch (e) {
+      log('deletePlugin：删除插件${plugin.name}文件失败，路径为${plugin.path}，异常为 $e');
+      return false;
+    }
   }
 }

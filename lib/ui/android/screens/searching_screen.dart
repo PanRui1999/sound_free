@@ -6,6 +6,7 @@ import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/sound.dart';
 import 'package:sound_free/tools/file_tools.dart';
 import 'package:sound_free/tools/global_data.dart';
+import 'package:sound_free/tools/lua_engine.dart';
 import 'package:sound_free/ui/android/components/search_bar.dart';
 import 'package:sound_free/ui/android/components/sound_player.dart';
 
@@ -24,7 +25,7 @@ class _SearchingScreen extends State<SearchingScreen> {
   @override
   void initState() {
     super.initState();
-    _pluginsState = GlobalData().runningPlugins.map((p) => p.stateMap).toList();
+    _pluginsState = LuaEngineN.instance.map((engine) => engine.plugin).toList().map((p) => p.stateMap).toList();
     _pluginsState.insert(0, {
       "plugin": Plugin(name: "local-memory", canBeToProvideSoundSource: true, path: "local"),
       "isSelected": true,

@@ -1,11 +1,9 @@
-import 'dart:developer';
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 import 'package:sound_free/tools/file_tools.dart';
+import 'package:sound_free/tools/lua_engine.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -53,13 +51,8 @@ class _SettingsScreen extends State<SettingsScreen> {
                     widthFactor: 0.5,
                     child: TextButton(
                       onPressed: () async {
-                        final Uri url = Uri.parse(
-                          'https://github.com/PanRui1999/sound_free',
-                        );
-                        if (!await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        )) {
+                        final Uri url = Uri.parse('https://github.com/PanRui1999/sound_free');
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
                           throw Exception('无法打开 $url');
                         }
                       },
@@ -76,6 +69,29 @@ class _SettingsScreen extends State<SettingsScreen> {
   }
 
   Widget _buildPluginsManagerItem() {
+    Column pluginsItemList = Column(crossAxisAlignment: CrossAxisAlignment.start, children: []);
+    for (var engin in LuaEngineN.instance) {
+      pluginsItemList.children.add(
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: const EdgeInsetsGeometry.only(left: 10),
+              child: Text(engin.plugin.name, style: TextStyle(color: Colors.grey, fontSize: 16)),
+            ),
+            Spacer(),
+            // IconButton(onPressed: () {}, icon: Icon(Icons.settings)),
+            IconButton(
+              onPressed: () => setState(() {
+                engin.uninstall();
+              }),
+              icon: Icon(Icons.remove),
+            ),
+          ],
+        ),
+      );
+    }
+
     Column w = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -88,8 +104,7 @@ class _SettingsScreen extends State<SettingsScreen> {
               onPressed: () async {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 // permission check
-                final permission = await Permission.manageExternalStorage
-                    .request();
+                final permission = await Permission.manageExternalStorage.request();
                 if (!permission.isGranted) return;
                 // open selector
                 String? filePath = await FileTools.selectorPlugin();
@@ -100,27 +115,21 @@ class _SettingsScreen extends State<SettingsScreen> {
                   FileTools.pluginsDirectory,
                   filePath.substring(filePath.lastIndexOf("/") + 1),
                 );
-                if(!b) {
+                if (!b) {
                   // add plugin error
                   scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('插件装载出错，请检查插件后再试'),
-                      duration: Duration(seconds: 3),
-                    ),
+                    const SnackBar(content: Text('插件装载出错，请检查插件后再试'), duration: Duration(seconds: 3)),
                   );
-                }else{
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('插件装载完成'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(const SnackBar(content: Text('插件装载完成'), duration: Duration(seconds: 1)));
+                  setState(() {});
                 }
               },
               icon: Icon(Icons.add),
             ),
           ],
         ),
+        pluginsItemList,
       ],
     );
     // searching installed plugins
@@ -135,10 +144,7 @@ class _SettingsScreen extends State<SettingsScreen> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                path,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
+              child: Text(path, style: TextStyle(fontSize: 16, color: Colors.grey)),
             ),
             IconButton(
               onPressed: () {
@@ -159,33 +165,24 @@ class _SettingsScreen extends State<SettingsScreen> {
       children: [
         Row(
           children: [
-            Expanded(
-              child: const Text('本地音乐目录', style: TextStyle(fontSize: 20.0)),
-            ),
+            Expanded(child: const Text('本地音乐目录', style: TextStyle(fontSize: 20.0))),
             IconButton(
               onPressed: () async {
                 final status = await Permission.storage.request();
                 if (!status.isGranted) {
                   showDialog(
                     context: context,
-                    builder: (_) => AlertDialog(
-                      title: Text('需要存储权限'),
-                      content: Text('请授予存储权限以选择音乐目录'),
-                    ),
+                    builder: (_) => AlertDialog(title: Text('需要存储权限'), content: Text('请授予存储权限以选择音乐目录')),
                   );
                   return;
                 }
                 // get permission
-                var selectedDirectory =
-                    await FileTools.requestDirectoryAccess();
+                var selectedDirectory = await FileTools.requestDirectoryAccess();
                 if (selectedDirectory != null) {
                   if (selectedDirectory['path'] != null &&
                       selectedDirectory['path'].isNotEmpty &&
-                      _scanningPaths!.contains(selectedDirectory['path']) ==
-                          false) {
-                    widget._appSettingsController.addScaningPath(
-                      selectedDirectory['path'],
-                    );
+                      _scanningPaths!.contains(selectedDirectory['path']) == false) {
+                    widget._appSettingsController.addScaningPath(selectedDirectory['path']);
                     setState(() {
                       _scanningPaths!.add(selectedDirectory['path']);
                     });
