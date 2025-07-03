@@ -5,7 +5,7 @@ import 'package:sound_free/models/favorites_collection.dart';
 import 'package:sound_free/models/plugin.dart';
 import 'package:sound_free/models/song.dart';
 import 'package:sound_free/models/song_lyrics.dart';
-import 'package:sound_free/tools/lua_engine.dart';
+import 'package:sound_free/tools/js_engine.dart';
 import 'dart:io' show Platform;
 import 'package:sound_free/ui/android/android_app.dart';
 import 'package:sound_free/models/sound.dart';
@@ -13,7 +13,7 @@ import 'tools/global_data.dart';
 
 void main() async {
   await initHive();
-  await LuaEngineN.init();
+  await JsEngine.init();
   if (Platform.isAndroid) {
     runApp(const AndroidApp());
   } else if (Platform.isWindows) {

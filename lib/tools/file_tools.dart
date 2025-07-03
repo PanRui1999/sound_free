@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sound_free/models/plugin.dart';
 import 'package:sound_free/tools/common_tools.dart';
 import 'package:archive/archive.dart';
-import 'package:sound_free/tools/lua_engine.dart';
+import 'package:sound_free/tools/js_engine.dart';
 
 class FileTools {
   static const String pluginsDirectory = "config/plugins";
@@ -86,7 +86,7 @@ class FileTools {
     for (ArchiveFile file in archive) {
       if (indexFile != null && versionFile != null) break;
       // main file
-      if (file.isFile && file.name == "index.lua") {
+      if (file.isFile && file.name == "index.js") {
         indexFile = file;
         continue;
       }
@@ -108,11 +108,11 @@ class FileTools {
       if (versionContentJson['version'] == null) return false;
       if (versionContentJson['canBeToProvideSoundSource'] == null) return false;
 
-      for (int i = 0; i < LuaEngineN.instance.length; i++) {
-        Plugin plugin = LuaEngineN.instance[i].plugin;
+      for (int i = 0; i < JsEngine.instance.length; i++) {
+        Plugin plugin = JsEngine.instance[i].plugin;
         if (plugin.name == versionContentJson["name"]) {
           // uninstall this plugin
-          LuaEngineN.instance.removeAt(i);
+          JsEngine.instance.removeAt(i);
           // delete local plugin
           Directory dir = Directory(plugin.path);
           if (dir.existsSync()) {
@@ -140,7 +140,7 @@ class FileTools {
       );
       newPlugin.scriptContent = utf8.decode(indexFile.content);
 
-      File temp1 = File('${baseDirectory.path}/index.lua');
+      File temp1 = File('${baseDirectory.path}/index.js');
       if (!temp1.existsSync()) temp1.createSync();
       temp1.writeAsBytesSync(indexContent);
 
@@ -150,7 +150,7 @@ class FileTools {
       temp2.writeAsStringSync(versionContentString);
 
       // install plugin
-      LuaEngineN('${newPlugin.name}-${baseDirectory.path}}', newPlugin);
+      JsEngine('${newPlugin.name}-${baseDirectory.path}}', newPlugin);
       return true;
     } catch (e) {
       // delete base directory if there happening error
@@ -171,7 +171,7 @@ class FileTools {
         if (entity is Directory) {
           Plugin? plugin;
           final versionFile = File('${entity.path}/version.json');
-          final luaScriptFile = File('${entity.path}/index.lua');
+          final luaScriptFile = File('${entity.path}/index.js');
           if (versionFile.existsSync() && luaScriptFile.existsSync()) {
             final json = jsonDecode(await versionFile.readAsString());
             if (json['name'] == null) break;

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sound_free/controllers/app_settings_controller.dart';
 import 'package:sound_free/tools/file_tools.dart';
-import 'package:sound_free/tools/lua_engine.dart';
+import 'package:sound_free/tools/js_engine.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -70,7 +70,7 @@ class _SettingsScreen extends State<SettingsScreen> {
 
   Widget _buildPluginsManagerItem() {
     Column pluginsItemList = Column(crossAxisAlignment: CrossAxisAlignment.start, children: []);
-    for (var engin in LuaEngineN.instance) {
+    for (var engin in JsEngine.instance) {
       pluginsItemList.children.add(
         Row(
           mainAxisSize: MainAxisSize.max,
